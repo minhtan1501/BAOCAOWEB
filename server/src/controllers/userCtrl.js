@@ -1,15 +1,14 @@
 const User = require('../models/userModel')
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-
+const Payments = require("../models/paymentsModels")
 const userCtrl = {
   register: async (req, res, next) => {
     try {
       const { name, email, password } = req.body;
 
       const user = await User.findOne({ email });
-      if (user)
-        return res.status(400).json({ message: "The email already exists" });
+      if (user) return res.status(400).json({ message: "The email already exists" });
 
       if (password < 8)
         return res
@@ -29,10 +28,10 @@ const userCtrl = {
       // then create jsontokenweb
       const accessToken = createAccessToken({ id: newUser._id });
       const refreshtoken = createRefreshToken({ id: newUser._id });
-
       res.cookie("refreshtoken", refreshtoken, {
         httpOnly: true,
-        path: "/user/refresh_token",
+        path: '/user/refresh_token',
+        maxAge: 7*24*60*60*1000
       });
 
       res.json({accessToken: accessToken})
@@ -72,10 +71,12 @@ const userCtrl = {
       // if Login successful, create access token and refresh token
       const accessToken = createAccessToken({ id: user._id });
       const refreshtoken = createRefreshToken({ id: user._id });
+      res.clearCookie("refreshtoken",{path: "/user/refresh_token"})
 
       res.cookie("refreshtoken", refreshtoken, {
         httpOnly: true,
-        path: "/user/refresh_token",
+        path: '/user/refresh_token',
+        maxAge: 7*24*60*60*1000
       });
       res.json({accessToken: accessToken})
     } catch (err) {
@@ -84,8 +85,8 @@ const userCtrl = {
   },
   logout: async (req, res, next) => {
     try {
-      res.clearCookie("refreshtoken",{path: "/user/refresh_token"});
-      return res.json({message: "logged out"})
+      res.clearCookie("refreshtoken",{path: "/user/refresh_token"})
+       return res.end();
     }
     catch (err) {
       return res.status(500).json({ message: err });
@@ -102,6 +103,27 @@ const userCtrl = {
     catch (err) {
       return res.status(500).json({ message: err });
     }
+  },
+  addCart: async (req, res, next) => {
+    try {
+      const user = await User.findById(req.user.id);
+      if(!user) return res.status(404).json({message: "User does not exist"});
+      await User.findOneAndUpdate({_id: req.user.id},{
+        cart: req.body
+      })
+      return res.status(200).json({ message: "Added to cart"})
+    }catch (err) {
+      return res.status(500).json({ message: err });
+    }
+  },
+  history: async (req, res,next) => {
+      try {
+        const history = await Payments.find({user_id: req.user.id})
+
+        res.json(history)
+      }catch (err) {
+        return res.status(500).json({ message: err.message})
+      }
   }
 };
 

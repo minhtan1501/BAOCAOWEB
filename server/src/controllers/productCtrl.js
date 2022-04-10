@@ -1,5 +1,5 @@
 const Products = require("../models/productModel");
-
+const { ObjectId } = require('mongodb');
 class APIfeatures {
   constructor(query, queryString) {
     this.query = query;
@@ -26,7 +26,7 @@ class APIfeatures {
       const sortBy = this.queryString.sort.split(",").join(" ");
       this.query.sort(sortBy);
     } else {
-      this.query.sort("-createdAt");
+      this.query.sort("price");
     }
 
     return this;
@@ -34,7 +34,7 @@ class APIfeatures {
 
   paginating() {
     const page = this.queryString.page * 1 || 1;
-    const limit = this.queryString * 1 || 3;
+    const limit = this.queryString.limit * 1 || 3;
     const skip = (page - 1) * limit;
     this.query = this.query.skip(skip).limit(limit);
     return this;
@@ -136,6 +136,23 @@ const productCtrl = {
       res.status(500).json({ message: err.message });
     }
   },
+  getProduct: async(req, res, next) =>{
+    try{
+      const id = req.params.id;
+      if (id.match(/^[0-9a-fA-F]{24}$/)) {
+        const product = await Products.findById(id);
+        if(!product) return res.status(404).json({message:"Product not found."});
+        return res.status(200).json(product);
+      }else {
+        return res.status(404).json({message:"Product not found."});
+      }
+        
+        
+    }catch(err) {
+        res.status(404).json({error:err})
+
+    }
+},
 };
 
 module.exports = productCtrl;
