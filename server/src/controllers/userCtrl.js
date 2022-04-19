@@ -120,7 +120,7 @@ const userCtrl = {
       try {
         const history = await Payments.find({user_id: req.user.id})
 
-        res.json(history)
+        res.status(200).json(history)
       }catch (err) {
         return res.status(500).json({ message: err.message})
       }
@@ -128,7 +128,7 @@ const userCtrl = {
 };
 
 const createAccessToken = (user) => {
-  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1d" });
+  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "11m" });
 };
 
 const createRefreshToken = (user) => {

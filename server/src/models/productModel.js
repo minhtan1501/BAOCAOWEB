@@ -1,12 +1,6 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
-    product_id:{
-        type: String,
-        trim: true,
-        required: true,
-        unique: true,
-    },
     title:{
         type: String,
         trim: true,
@@ -20,10 +14,6 @@ const productSchema = new mongoose.Schema({
     description:{
         type: String,
         trim: true,
-    },
-    content:{
-        type: String,
-        required: true,
     },
     images: {
         type: Object,

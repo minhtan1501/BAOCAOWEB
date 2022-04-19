@@ -1,5 +1,5 @@
 const Products = require("../models/productModel");
-const { ObjectId } = require('mongodb');
+const { ObjectId } = require("mongodb");
 class APIfeatures {
   constructor(query, queryString) {
     this.query = query;
@@ -50,12 +50,11 @@ const productCtrl = {
         .paginating();
 
       const products = await features.query;
-      const totalProducts = await Products.countDocuments()
-      res.status(200).json({ 
-          status: 'success',
-          results: totalProducts,
-          products
-          
+      const totalProducts = await Products.countDocuments();
+      res.status(200).json({
+        status: "success",
+        results: totalProducts,
+        products,
       });
     } catch (err) {
       res.status(500).json({ message: err.message });
@@ -63,31 +62,18 @@ const productCtrl = {
   },
   createProducts: async (req, res) => {
     try {
-      const {
-        product_id,
+      const { title, price, description, images, category } = req.body;
+      if (!images)
+        return res.status(400).json({ message: "No images uploaded!" });
+      const product = await Products.find();
+      const check = product.findIndex(item => item.title === title)
+      if (check >=0) {
+        return res.status(400).json({ message: "Product already exists" });
+      }
+      const newProduct = new Products({
         title,
         price,
         description,
-        content,
-        images,
-        category,
-      } = req.body;
-      if (!images)
-        return res.status(400).json({ message: "No images uploaded!" });
-
-      const product = await Products.findOne({ product_id });
-
-      if (product)
-        return res
-          .status(400)
-          .json({ message: "This products already exists" });
-
-      const newProduct = new Products({
-        product_id,
-        title: title.toLowerCase(),
-        price,
-        description,
-        content,
         images,
         category,
       });
@@ -109,11 +95,9 @@ const productCtrl = {
   updateProducts: async (req, res) => {
     try {
       const {
-        product_id,
         title,
         price,
         description,
-        content,
         images,
         category,
       } = req.body;
@@ -122,11 +106,9 @@ const productCtrl = {
       await Products.findOneAndUpdate(
         { _id: req.params.id },
         {
-          product_id,
-          title: title.toLowerCase(),
+          title,
           price,
           description,
-          content,
           images,
           category,
         }
@@ -136,23 +118,21 @@ const productCtrl = {
       res.status(500).json({ message: err.message });
     }
   },
-  getProduct: async(req, res, next) =>{
-    try{
+  getProduct: async (req, res, next) => {
+    try {
       const id = req.params.id;
       if (id.match(/^[0-9a-fA-F]{24}$/)) {
         const product = await Products.findById(id);
-        if(!product) return res.status(404).json({message:"Product not found."});
+        if (!product)
+          return res.status(404).json({ message: "Product not found." });
         return res.status(200).json(product);
-      }else {
-        return res.status(404).json({message:"Product not found."});
+      } else {
+        return res.status(404).json({ message: "Product not found." });
       }
-        
-        
-    }catch(err) {
-        res.status(404).json({error:err})
-
+    } catch (err) {
+      res.status(404).json({ error: err });
     }
-},
+  },
 };
 
 module.exports = productCtrl;
