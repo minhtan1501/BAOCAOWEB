@@ -11,11 +11,12 @@ class APIfeatures {
     excludedFields.forEach((e) => delete queryObj[e]);
 
     let queryStr = JSON.stringify(queryObj);
+
     queryStr = queryStr.replace(
       /\b(gte|gt|lt|lte|regex)\b/,
       (match) => "$" + match
     );
-
+    console.log(JSON.parse(queryStr));
     this.query.find(JSON.parse(queryStr));
 
     return this;
